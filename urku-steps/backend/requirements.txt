@@ -1,0 +1,6 @@
+Flask
+requests
+Pillow
+folium
+OWSLib
+matplotlib
