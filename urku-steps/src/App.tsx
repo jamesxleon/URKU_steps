@@ -1,17 +1,37 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './pages/Home';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import InteractiveMap from './pages/InteractiveMap';
+import Home from './pages/Home';
+import { fetchLayerCompatibilityData } from './services/gisService';
+import 'leaflet/dist/leaflet.css';
 
-function App() {
+const App: React.FC = () => {
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadLayerData = async () => {
+      try {
+        await fetchLayerCompatibilityData();
+        console.log('Layer compatibility data loaded successfully');
+      } catch (error) {
+        console.error('Failed to load layer compatibility data:', error);
+        setError('Failed to load map data. Please try again later.');
+      }
+    };
+
+    loadLayerData();
+  }, []);
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/map" element={<InteractiveMap />} />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/map" element={<InteractiveMap />} />
+    </Routes>
   );
-}
+};
 
 export default App;
