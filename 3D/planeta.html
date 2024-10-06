@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Pantalla Carga</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+
+	<body>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+		<script type="module">
+
+			import * as THREE from 'three';
+
+			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+			import { LightProbeHelper } from 'three/addons/helpers/LightProbeHelper.js';
+			import { LightProbeGenerator } from 'three/addons/lights/LightProbeGenerator.js';
+			import Stats from 'three/addons/libs/stats.module.js';
+            import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+
+
+			let renderer, scene, camera, cubeCamera, esferaMat, textureLoader;
+
+			let lightProbe;
+
+			init();
+
+			function init() {
+
+				// renderer
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				// scene
+				scene = new THREE.Scene();
+
+				// camera
+				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.set( 0, 0, 30 );
+
+				const cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 256 );
+				const ambientLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 3); // Luz suave
+
+				cubeCamera = new THREE.CubeCamera( 1, 1000, cubeRenderTarget );
+				// Crear la geometría de la esfera
+				const pointLight = new THREE.PointLight(0xffffff, 400, 100);
+				pointLight.position.set(-10, 5, 0);
+
+				// Crear el material de la esfera
+				//const esferaMaterial = new THREE.MeshBasicMaterial({ color: 0x00000 });
+
+				const textureLoader = new THREE.TextureLoader();
+				esferaMat = new THREE.MeshStandardMaterial( {
+					//color: 0xfff,
+					//roughness: 0.5,
+					//metalness: 1.0
+				} );
+				textureLoader.load( 'textures/earth_atmos_2048.jpg', function ( map ) {
+
+					map.anisotropy = 4;
+					map.colorSpace = THREE.SRGBColorSpace;
+					esferaMat.map = map;
+					esferaMat.needsUpdate = true;
+
+				} );
+				textureLoader.load( 'textures/earth_specular_2048.jpg', function ( map ) {
+
+					map.anisotropy = 4;
+					map.colorSpace = THREE.SRGBColorSpace;
+					esferaMat.metalnessMap = map;
+					esferaMat.needsUpdate = true;
+
+				} );
+
+				const esferaGeometry = new THREE.SphereGeometry(5.5, 32, 32);
+				// Crear el mesh (geometría + material) de la esfera
+				const esfera = new THREE.Mesh(esferaGeometry, esferaMat);
+
+				// controls
+				const controls = new OrbitControls( camera, renderer.domElement );
+				
+				controls.addEventListener( 'change', render );
+				controls.minDistance = 10;
+				controls.maxDistance = 50;
+				controls.enablePan = false;
+
+				// probe
+				lightProbe = new THREE.LightProbe();
+				scene.add( lightProbe, esfera, ambientLight, pointLight);
+				// Posicionar la esfera
+				esfera.position.set(0, 0, 0);
+
+				// Función de animación
+				const animate = function () {
+				requestAnimationFrame(animate);
+
+				// Rotar la esfera sobre su eje
+				esfera.rotation.y += 0.0015; // Rota en el eje Y (vertical)
+				//esfera.rotation.x += 0.001; // Rota en el eje X (horizontal)
+
+				renderer.render(scene, camera);
+				};
+
+				// Iniciar la animación
+				animate();
+
+
+				// envmap
+				const genCubeUrls = function ( prefix, postfix ) {
+
+					return [
+						prefix + 'px' + postfix, prefix + 'nx' + postfix,
+						prefix + 'py' + postfix, prefix + 'ny' + postfix,
+						prefix + 'pz' + postfix, prefix + 'nz' + postfix
+					];
+
+				};
+
+				const urls = genCubeUrls( 'textures/espacio/', '.png' );
+
+				new THREE.CubeTextureLoader().load( urls, async function ( cubeTexture ) {
+
+					scene.background = cubeTexture;
+
+					cubeCamera.update( renderer, scene );
+
+					const probe = await LightProbeGenerator.fromCubeRenderTarget( renderer, cubeRenderTarget );
+
+					lightProbe.copy( probe );
+
+					scene.add( new LightProbeHelper( lightProbe, 5 ) );
+
+					render();
+
+				} );
+
+				// listener
+				window.addEventListener( 'resize', onWindowResize );
+
+
+			}
+
+			function onWindowResize() {
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				render();
+
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
