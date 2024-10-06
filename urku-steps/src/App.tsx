@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import InteractiveMap from './pages/InteractiveMap';
-import Home from './pages/Home';
+import InteractiveMap from './pages/InteractiveMap/InteractiveMap';
+import Home from './pages/Home/Home';
 import { fetchLayerCompatibilityData } from './services/gisService';
 import 'leaflet/dist/leaflet.css';
 
