@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Game.css';
 
@@ -42,13 +42,15 @@ const Game: React.FC = () => {
     const [showGoalMessage, setShowGoalMessage] = useState(false);
     const navigate = useNavigate();
 
-    const avatarImg = new Image();
-    avatarImg.src = '/images/avatar.png';
-
-    const goalImg = new Image();
-    goalImg.src = '/images/goal.png';
+    const avatarImg = useRef(new Image());
+    const goalImg = useRef(new Image());
 
     useEffect(() => {
+        // Set src attributes for avatar and goal images
+        avatarImg.current.src = '/images/avatar.png';
+        goalImg.current.src = '/images/goal.png';
+
+        // Load platform images and initialize obstacles
         const platformImagesSrc = ['/images/mountain.png', '/images/mountain_1.png', '/images/mountain_3.png'];
         const platformImages = platformImagesSrc.map(src => {
             const img = new Image();
@@ -58,13 +60,14 @@ const Game: React.FC = () => {
 
         const loadImages = () => {
             let loaded = 0;
-            const totalImages = platformImages.length + 2;
+            const totalImages = platformImages.length + 2; // Avatar and goal images included
             platformImages.forEach(img => img.onload = () => { if (++loaded === totalImages) setImagesLoaded(true); });
-            avatarImg.onload = () => { if (++loaded === totalImages) setImagesLoaded(true); };
-            goalImg.onload = () => { if (++loaded === totalImages) setImagesLoaded(true); };
+            avatarImg.current.onload = () => { if (++loaded === totalImages) setImagesLoaded(true); };
+            goalImg.current.onload = () => { if (++loaded === totalImages) setImagesLoaded(true); };
         };
         loadImages();
 
+        // Hardcode platform positions
         obstaclesRef.current = [
             { x: 150, y: 600, width: 150, height: 250, image: platformImages[0] },
             { x: 350, y: 500, width: 150, height: 300, image: platformImages[1] },
@@ -74,17 +77,7 @@ const Game: React.FC = () => {
 
     }, []);
 
-    useEffect(() => {
-        if (imagesLoaded) {
-            const canvas = canvasRef.current;
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                if (ctx) gameLoop(ctx);
-            }
-        }
-    }, [imagesLoaded]);
-
-    const gameLoop = (ctx: CanvasRenderingContext2D) => {
+    const gameLoop = useCallback((ctx: CanvasRenderingContext2D) => {
         const avatar = avatarRef.current;
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -92,6 +85,7 @@ const Game: React.FC = () => {
         avatar.dy += avatar.gravity;
         avatar.y += avatar.dy;
 
+        // Platform collisions
         obstaclesRef.current.forEach(obstacle => {
             if (
                 avatar.x < obstacle.x + obstacle.width &&
@@ -105,6 +99,7 @@ const Game: React.FC = () => {
             }
         });
 
+        // Ground collision
         if (avatar.y + avatar.height >= ctx.canvas.height) {
             avatar.y = ctx.canvas.height - avatar.height;
             avatar.dy = 0;
@@ -113,6 +108,7 @@ const Game: React.FC = () => {
             avatar.onGround = false;
         }
 
+        // Goal collision
         const goal = goalRef.current;
         if (
             avatar.x < goal.x + goal.width &&
@@ -123,22 +119,23 @@ const Game: React.FC = () => {
             setShowGoalMessage(true);
         }
 
+        // Handle movement
         if (keys.current['ArrowRight']) avatar.x += avatar.dx;
         if (keys.current['ArrowLeft']) avatar.x -= avatar.dx;
         if (keys.current['ArrowUp'] && avatar.onGround) avatar.dy = avatar.jumpPower;
 
         draw(ctx);
         requestAnimationFrame(() => gameLoop(ctx));
-    };
+    }, []);
 
     const draw = (ctx: CanvasRenderingContext2D) => {
-        ctx.drawImage(avatarImg, avatarRef.current.x, avatarRef.current.y, avatarRef.current.width, avatarRef.current.height);
+        ctx.drawImage(avatarImg.current, avatarRef.current.x, avatarRef.current.y, avatarRef.current.width, avatarRef.current.height);
 
         obstaclesRef.current.forEach(obstacle => {
             ctx.drawImage(obstacle.image, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
         });
 
-        ctx.drawImage(goalImg, goalRef.current.x, goalRef.current.y, goalRef.current.width, goalRef.current.height);
+        ctx.drawImage(goalImg.current, goalRef.current.x, goalRef.current.y, goalRef.current.width, goalRef.current.height);
     };
 
     const resetGame = () => {
@@ -151,6 +148,16 @@ const Game: React.FC = () => {
 
     const handleKeyDown = (e: KeyboardEvent) => { keys.current[e.key] = true; };
     const handleKeyUp = (e: KeyboardEvent) => { keys.current[e.key] = false; };
+
+    useEffect(() => {
+        if (imagesLoaded) {
+            const canvas = canvasRef.current;
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (ctx) gameLoop(ctx);
+            }
+        }
+    }, [imagesLoaded, gameLoop]);
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
@@ -173,7 +180,7 @@ const Game: React.FC = () => {
             {showGoalMessage && (
                 <div className="goal-message">
                     <p>Congratulations! You've overcome the obstacles!</p>
-                    <button onClick={() => navigate('/home')}>Start a New Journey</button>
+                    <button onClick={() => { resetGame(); navigate('/home'); }}>Start a New Journey</button>
                 </div>
             )}
         </div>
