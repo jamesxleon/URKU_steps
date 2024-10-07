@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import InteractiveMap from './pages/InteractiveMap/InteractiveMap';
+import Start from './pages/Start/Start';
 import Home from './pages/Home/Home';
+import InteractiveMap from './pages/InteractiveMap/InteractiveMap';
 import { fetchLayerCompatibilityData } from './services/gisService';
 import 'leaflet/dist/leaflet.css';
 
@@ -28,7 +29,8 @@ const App: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Start />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/map" element={<InteractiveMap />} />
     </Routes>
   );

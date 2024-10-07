@@ -4,6 +4,7 @@ import L, { Map as LeafletMap } from 'leaflet';
 import { Career, getMockResourceData } from '../../services/mockDataService';
 import MapViewWithGIBS from '../../components/MapViewWithGIBS';
 import 'leaflet/dist/leaflet.css';
+import './InteractiveMap.css';
 
 import userIcon from '../../assets/user-location.png';
 import resourceIcon from '../../assets/resource-location.png';
@@ -80,58 +81,66 @@ const InteractiveMap: React.FC = () => {
   ];
 
   return (
-    <div>
-      <h2>NASA GIBS Map</h2>
-      <div>
-        <label>
-          Choose your career:
-          <select 
-            value={career || ''} 
-            onChange={(e) => setCareer(e.target.value as Career)}
-          >
-            <option value="">Select a career</option>
-            <option value="agriculture">Agriculture</option>
-            <option value="healthcare">Healthcare</option>
-            <option value="technology">Technology</option>
-            <option value="astronomy">Astronomy</option>
-          </select>
-        </label>
-        {resourceData && (
-          <p>Urku Steps to Ideal Resources: {resourceData.urkuSteps.toFixed(2)}</p>
-        )}
+    <section className="principal">
+      <div className="container">
+        <div className="logo-container">
+          <a href="Urku.html">
+            <h3>URKU STEPS</h3>
+          </a>
+        </div>
+
+        <div className="flex-containerstep">
+          <div className="text-container">
+            <h1>What do you want to be?</h1>
+            <label>
+              Choose your career:
+              <select value={career || ''} onChange={(e) => setCareer(e.target.value as Career)}>
+                <option value="">Select a career</option>
+                <option value="agriculture">Agriculture</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="technology">Technology</option>
+                <option value="astronomy">Astronomy</option>
+              </select>
+            </label>
+            {resourceData && (
+              <p>Urku Steps to Ideal Resources: {resourceData.urkuSteps.toFixed(2)}</p>
+            )}
+          </div>
+
+          <div className="text-container">
+            <h1>Your Interactive Map</h1>
+            <MapContainer
+              center={userData?.coordinates || [0, 0]}
+              zoom={10}
+              style={{ height: '600px', width: '100%' }}
+              whenReady={() => {
+                if (mapRef.current && userData) {
+                  mapRef.current.setView(userData.coordinates, 10);
+                }
+              }}
+            >
+              <MapViewWithGIBS userCoordinates={userData?.coordinates || [0, 0]} layers={layers} zoom={10} showUserMarker={true} />
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+              {userData && (
+                <Marker position={userData.coordinates} icon={userMarker}>
+                  <Popup>Your Location</Popup>
+                </Marker>
+              )}
+
+              {resourceLocations.map((location, index) => (
+                <React.Fragment key={index}>
+                  <Marker position={location as [number, number]} icon={resourceMarker}>
+                    <Popup>Resource Location {index + 1}</Popup>
+                  </Marker>
+                  <Polyline positions={[userData?.coordinates as [number, number], location as [number, number]]} color="red" />
+                </React.Fragment>
+              ))}
+            </MapContainer>
+          </div>
+        </div>
       </div>
-      <MapContainer
-        center={userData?.coordinates || [0, 0]}
-        zoom={10}
-        style={{ height: '600px', width: '100%' }}
-        whenReady={() => {
-          if (mapRef.current && userData) {
-            mapRef.current.setView(userData.coordinates, 10);
-          }
-        }}
-      >
-        {/* NASA GIBS layers */}
-        <MapViewWithGIBS userCoordinates={userData?.coordinates || [0, 0]} layers={layers} zoom={10} showUserMarker={true} />
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-        {/* User location marker */}
-        {userData && (
-          <Marker position={userData.coordinates} icon={userMarker}>
-            <Popup>Your Location</Popup>
-          </Marker>
-        )}
-
-        {/* Resource locations with markers and lines */}
-        {resourceLocations.map((location, index) => (
-          <React.Fragment key={index}>
-            <Marker position={location as [number, number]} icon={resourceMarker}>
-              <Popup>Resource Location {index + 1}</Popup>
-            </Marker>
-            <Polyline positions={[userData?.coordinates as [number, number], location as [number, number]]} color="red" />
-          </React.Fragment>
-        ))}
-      </MapContainer>
-    </div>
+    </section>
   );
 };
 
