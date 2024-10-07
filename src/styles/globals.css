@@ -1,0 +1,40 @@
+/* Global Reset and Font */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: url('/public/images/background.png') no-repeat center center fixed,
+              linear-gradient(
+                  to bottom,
+                  #290E59,
+                  #3C2175,
+                  #51398E,
+                  #6C4DAD,
+                  #8A67CC
+              );
+  background-size: cover;
+  background-position: center;
+  animation: moveBackground 30s linear infinite;
+  color: white;
+  text-align: center;
+}
+
+
+/* Background Animation */
+@keyframes moveBackground {
+  0% {
+      background-position: 0% 0%;
+  }
+  50% {
+      background-position: 100% 100%;
+  }
+  100% {
+      background-position: 0% 0%;
+  }
+}
