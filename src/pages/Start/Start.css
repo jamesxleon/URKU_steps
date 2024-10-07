@@ -1,0 +1,96 @@
+/* Logo */
+.logo-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+}
+
+h3 {
+    font-family: 'Protest Strike', Arial, sans-serif;
+    font-size: 1.5rem;
+    color: white;
+    text-decoration: none;
+}
+
+/* Main Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    font-family: 'Protest Strike', Arial, sans-serif;
+}
+
+h2 {
+    font-size: 2.5rem;
+    font-family: 'Protest Strike', Arial, sans-serif;
+}
+
+/* Banner Image */
+.banner-image {
+    width: 100%;
+    max-width: 300px;
+    margin: 20px 0;
+}
+
+.banner-img {
+    width: 100%;
+    height: auto;
+}
+
+/* Countdown Button */
+.submit-button {
+    background-color: #5a00c3;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #3f0090;
+}
+
+/* Push-up Transition */
+.push-up {
+    animation: pushUp 0.5s forwards ease-in;
+}
+
+@keyframes pushUp {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .banner-image {
+        max-width: 200px;
+    }
+}
